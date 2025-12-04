@@ -28,9 +28,113 @@ export default function PostGenerator() {
   const [format, setFormat] = useState<string>('');
 
   // Étape 2 : Template
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  {/* Étape 2 : Choix template */}
+{currentStep === 2 && (
+  <div className="bg-white rounded-lg shadow-md p-8">
+    <h2 className="text-xl font-bold text-gray-900 mb-6">Choisissez un template</h2>
+
+    {loadingTemplates ? (
+      <div className="text-center py-12 text-gray-500">
+        Chargement des templates...
+      </div>
+    ) : templates.length === 0 ? (
+      <div className="text-center py-12">
+        <p className="text-gray-500 mb-4">
+          Aucun template disponible pour cette combinaison
+        </p>
+        <button
+          onClick={() => setCurrentStep(1)}
+          className="text-blue-600 hover:text-blue-700"
+        >
+          ← Retour
+        </button>
+      </div>
+    ) : (
+      <>
+        {/* Filtre par catégorie */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Filtrer par catégorie
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                categoryFilter === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Tous ({templates.length})
+            </button>
+            {Array.from(new Set(templates.map(t => t.category))).map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+                  categoryFilter === cat
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {cat} ({templates.filter(t => t.category === cat).length})
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Liste des templates */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {templates
+            .filter(t => categoryFilter === 'all' || t.category === categoryFilter)
+            .map((template) => (
+              <button
+                key={template.id}
+                onClick={() => setSelectedTemplate(template)}
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  selectedTemplate?.id === template.id
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <h3 className="font-bold text-gray-900 mb-2">{template.name}</h3>
+                <p className="text-sm text-gray-600 mb-2 capitalize">
+                  {template.category}
+                </p>
+                <p className="text-xs text-gray-500 line-clamp-2">
+                  {template.prompt_base}
+                </p>
+              </button>
+            ))}
+        </div>
+
+        {/* Message si aucun template après filtrage */}
+        {templates.filter(t => categoryFilter === 'all' || t.category === categoryFilter).length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            Aucun template dans cette catégorie
+          </div>
+        )}
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => setCurrentStep(1)}
+            className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            ← Retour
+          </button>
+          <button
+            onClick={() => setCurrentStep(3)}
+            disabled={!selectedTemplate}
+            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Continuer →
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+)}
+
 
   // Étape 3 : Génération
   const [userSuggestions, setUserSuggestions] = useState('');
@@ -55,38 +159,27 @@ export default function PostGenerator() {
   }, [currentStep, platform, format]);
 
   const loadTemplates = async () => {
-    setLoadingTemplates(true);
-    try {
-      let query = supabase
-        .from('template')
-        .select('*')
-        .eq('is_active', true)
-        .contains('platforms', [platform])
-        .contains('formats', [format]);
+  setLoadingTemplates(true);
+  try {
+    // Charger TOUS les templates actifs pour cette plateforme/format
+    const { data, error } = await supabase
+      .from('template')
+      .select('*')
+      .eq('is_active', true)
+      .contains('platforms', [platform])
+      .contains('formats', [format]);
 
-      // Filtrer par secteur d'activité si disponible
-      if (company?.business_sector) {
-        query = query.contains('works_best_for', [company.business_sector]);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setTemplates(data || []);
-    } catch (error) {
-      console.error('Erreur chargement templates:', error);
-      // Si aucun template pour ce secteur, charger tous les templates
-      const { data } = await supabase
-        .from('template')
-        .select('*')
-        .eq('is_active', true)
-        .contains('platforms', [platform])
-        .contains('formats', [format]);
-      setTemplates(data || []);
+    if (error) throw error;
+    setTemplates(data || []);
+     } catch (error) {
+    console.error('Erreur chargement templates:', error);
+    setTemplates([]);
     } finally {
-      setLoadingTemplates(false);
+    setLoadingTemplates(false);
     }
-  };
+   };
+
+
 
   const handleGenerate = async () => {
     if (!company?.id || !selectedTemplate) return;
