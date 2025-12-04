@@ -16,7 +16,7 @@ export default function Profile() {
   const [logoUrl, setLogoUrl] = useState('');
   const [toneOfVoice, setToneOfVoice] = useState('');
   const [visualStyle, setVisualStyle] = useState('');
-  
+
   // États UI
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -55,7 +55,7 @@ export default function Profile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!company?.id) {
       setMessage({ type: 'error', text: 'Erreur : entreprise non trouvée' });
       return;
@@ -86,7 +86,7 @@ export default function Profile() {
       await refreshData();
 
       setMessage({ type: 'success', text: '✅ Profil mis à jour avec succès !' });
-      
+
       // Scroll en haut pour voir le message
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
