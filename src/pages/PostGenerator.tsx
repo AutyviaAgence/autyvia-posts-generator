@@ -306,114 +306,261 @@ export default function PostGenerator() {
             </button>
           </div>
         )}
+	{/* Étape 2 : Choix template */}
+	{currentStep === 2 && (
+	 <div className="bg-white rounded-lg shadow-md p-8">
+	<h2 className="text-xl font-bold text-gray-900 mb-6">Choisissez un template</h2>
 
-        {/* Étape 2 : Choix template */}
-        {currentStep === 2 && (
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Choisissez un template</h2>
+	    {loadingTemplates ? (
+	 <div className="text-center py-12 text-gray-500">
+	 Chargement des templates...
+	</div>
+    ) : templates.length === 0 ? (
+      <div className="text-center py-12">
+        <p className="text-gray-500 mb-4">
+          Aucun template disponible pour cette combinaison
+        </p>
+        <button
+          onClick={() => setCurrentStep(1)}
+          className="text-blue-600 hover:text-blue-700"
+        >
+          ← Retour
+        </button>
+      </div>
+    ) : (
+      <>
+        {/* Filtre par catégorie */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Filtrer par catégorie
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                categoryFilter === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Tous ({templates.length})
+            </button>
+            {Array.from(new Set(templates.map((t) => t.category))).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
+                  categoryFilter === cat
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {cat} ({templates.filter((t) => t.category === cat).length})
+              </button>
+            ))}
+          </div>
+        </div>
 
-            {loadingTemplates ? (
-              <div className="text-center py-12 text-gray-500">
-                Chargement des templates...
-              </div>
-            ) : templates.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">
-                  Aucun template disponible pour cette combinaison
-                </p>
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  ← Retour
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Filtre par catégorie */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Filtrer par catégorie
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setCategoryFilter('all')}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        categoryFilter === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      Tous ({templates.length})
-                    </button>
-                    {Array.from(new Set(templates.map((t) => t.category))).map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setCategoryFilter(cat)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
-                          categoryFilter === cat
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {cat} ({templates.filter((t) => t.category === cat).length})
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Liste des templates */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {templates
-                    .filter((t) => categoryFilter === 'all' || t.category === categoryFilter)
-                    .map((template) => (
-                      <button
-                        key={template.id}
-                        onClick={() => setSelectedTemplate(template)}
-                        className={`p-4 rounded-lg border-2 text-left transition-all ${
-                          selectedTemplate?.id === template.id
-                            ? 'border-blue-600 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <h3 className="font-bold text-gray-900 mb-2">{template.name}</h3>
-                        <p className="text-sm text-gray-600 mb-2 capitalize">
+        {/* Interface 2 colonnes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Colonne gauche : Liste scrollable des templates */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">
+                Templates disponibles (
+                {templates.filter((t) => categoryFilter === 'all' || t.category === categoryFilter).length}
+                )
+              </h3>
+            </div>
+            <div className="overflow-y-auto max-h-[500px] divide-y divide-gray-200">
+              {templates
+                .filter((t) => categoryFilter === 'all' || t.category === categoryFilter)
+                .map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => setSelectedTemplate(template)}
+                    className={`w-full p-4 text-left transition-all hover:bg-gray-50 ${
+                      selectedTemplate?.id === template.id
+                        ? 'bg-blue-50 border-l-4 border-blue-600'
+                        : 'border-l-4 border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Thumbnail miniature */}
+                      {template.thumbnail_url ? (
+                        <img
+                          src={template.thumbnail_url}
+                          alt={template.name}
+                          className="w-16 h-16 rounded object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0">
+                          <span className="text-2xl">✨</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 mb-1 truncate">
+                          {template.name}
+                        </h4>
+                        <p className="text-xs text-gray-600 capitalize mb-1">
                           {template.category}
                         </p>
                         <p className="text-xs text-gray-500 line-clamp-2">
                           {template.prompt_base}
                         </p>
-                      </button>
-                    ))}
-                </div>
+                      </div>
+                      
+                      {/* Indicateur de sélection */}
+                      {selectedTemplate?.id === template.id && (
+                        <div className="flex-shrink-0 text-blue-600">
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+            </div>
+          </div>
 
-                {/* Message si aucun template après filtrage */}
-                {templates.filter((t) => categoryFilter === 'all' || t.category === categoryFilter)
-                  .length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    Aucun template dans cette catégorie
+          {/* Colonne droite : Prévisualisation du template sélectionné */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            {selectedTemplate ? (
+              <div className="h-full flex flex-col">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3">
+                  <h3 className="font-bold text-white">Aperçu du template</h3>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto max-h-[500px] p-6">
+                  {/* Image de référence */}
+                  {selectedTemplate.thumbnail_url ? (
+                    <div className="mb-6">
+                      <img
+                        src={selectedTemplate.thumbnail_url}
+                        alt={selectedTemplate.name}
+                        className="w-full rounded-lg shadow-md"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-6 aspect-square rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                      <span className="text-6xl">✨</span>
+                    </div>
+                  )}
+                  
+                  {/* Nom et catégorie */}
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                    {selectedTemplate.name}
+                  </h4>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 capitalize">
+                      {selectedTemplate.category}
+                    </span>
                   </div>
-                )}
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    ← Retour
-                  </button>
-                  <button
-                    onClick={() => setCurrentStep(3)}
-                    disabled={!selectedTemplate}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Continuer →
-                  </button>
+                  
+                  {/* Description complète */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h5 className="font-semibold text-gray-900 mb-2">Description</h5>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {selectedTemplate.prompt_base}
+                    </p>
+                  </div>
+                  
+                  {/* Informations complémentaires */}
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="font-semibold text-gray-900 text-sm mb-2">
+                        Idéal pour
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTemplate.works_best_for?.map((sector, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs capitalize"
+                          >
+                            {sector}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-semibold text-gray-900 text-sm mb-2">
+                        Plateformes compatibles
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTemplate.platforms?.map((plat, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs capitalize"
+                          >
+                            {plat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h5 className="font-semibold text-gray-900 text-sm mb-2">
+                        Formats disponibles
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTemplate.formats?.map((fmt, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs capitalize"
+                          >
+                            {fmt}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </>
+              </div>
+            ) : (
+              <div className="h-[500px] flex items-center justify-center text-gray-400">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">👈</div>
+                  <p className="text-lg font-medium">Sélectionnez un template</p>
+                  <p className="text-sm mt-2">pour voir l'aperçu et les détails</p>
+                </div>
+              </div>
             )}
           </div>
+        </div>
+
+        {/* Message si aucun template après filtrage */}
+        {templates.filter((t) => categoryFilter === 'all' || t.category === categoryFilter)
+          .length === 0 && (
+          <div className="text-center py-8 text-gray-500 mb-6">
+            Aucun template dans cette catégorie
+          </div>
         )}
+
+        {/* Boutons de navigation */}
+        <div className="flex gap-4">
+          <button
+            onClick={() => setCurrentStep(1)}
+            className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+          >
+            ← Retour
+          </button>
+          <button
+            onClick={() => setCurrentStep(3)}
+            disabled={!selectedTemplate}
+            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Continuer →
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+)}
+
+
 
         {/* Étape 3 : Génération */}
         {currentStep === 3 && !generatedPost && (
