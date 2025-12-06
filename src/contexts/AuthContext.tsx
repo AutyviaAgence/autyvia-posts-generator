@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const companyId = companyData.id;
 
       // 3. Create user entry
-      const { data: userData, error: userError } = await supabase
+      const { error: userError } = await supabase
         .from('user')
         .insert({
           id: userId,
