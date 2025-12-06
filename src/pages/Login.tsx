@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
@@ -17,12 +18,31 @@ export default function Login() {
 
     try {
       await signIn(email, password);
+      
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedEmail');
+      }
+      
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Erreur de connexion');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Load remembered email on mount
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
+  const handleRememberMeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRememberMe(e.target.checked);
   };
 
   return (
@@ -53,7 +73,7 @@ export default function Login() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="votre@email.com"
@@ -75,6 +95,19 @@ export default function Login() {
               />
             </div>
 
+            <div className="flex items-center">
+              <input
+                id="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={handleRememberMeChange}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600">
+                Se souvenir de moi
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -82,6 +115,13 @@ export default function Login() {
             >
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
+
+            <p className="text-center text-sm text-gray-600">
+              Vous n'avez pas de compte?{' '}
+              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                S'inscrire
+              </Link>
+            </p>
           </form>
         </div>
       </div>
